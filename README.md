@@ -27,8 +27,9 @@ desde los orígenes de su variable `CORS_ALLOWED_ORIGINS` (por defecto `http://l
 | `lab` | Laboratorio | `https://muisca-unicauca-web-lab.onrender.com` |
 | `main` | Producción | `https://muisca-unicauca-web.onrender.com` |
 
-Al hacer merge en `lab` o `main`, Render reconstruye el sitio tras pasar el CI
-(`.github/workflows/ci.yml`). El build de Render ejecuta:
+Repositorio: <https://github.com/victorsotelo45/muisca_frontend>. Al hacer merge en `lab` o `main`,
+Render reconstruye el sitio tras pasar el CI (`.github/workflows/ci.yml`). El backend usa una base
+MySQL gratuita en Aiven (bases `muisca_lab` y `muisca_prod`). El build de Render ejecuta:
 
 ```bash
 npm ci && npm run build && node scripts/write-runtime-config.mjs
