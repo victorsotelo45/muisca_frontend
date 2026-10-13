@@ -1,6 +1,7 @@
 name: CI frontend
 
-# Render despliega lab/main solo cuando este workflow termina bien (autoDeployTrigger: checksPass).
+# Pruebas y build en cada push/PR a lab y main. En un push (merge) a lab o main, si todo pasa,
+# despliega ese commit en Render: lab -> Laboratorio, main -> Producción.
 on:
   push:
     branches: [main, lab]
@@ -21,3 +22,22 @@ jobs:
         run: npx ng test --watch=false --browsers=ChromeHeadless
       - name: Build de producción
         run: npm run build
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && (github.ref_name == 'lab' || github.ref_name == 'main')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ github.ref_name }}
+      cancel-in-progress: true
+    steps:
+      - name: Desplegar en Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          # muisca-unicauca-web (producción) y muisca-unicauca-web-lab (laboratorio)
+          SERVICE_ID: ${{ github.ref_name == 'main' && 'srv-db6ll98m7kps73bbqotg' || 'srv-db6lla8473hc73dpih50' }}
+        run: |
+          curl --fail-with-body -sS -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"commitId\":\"$GITHUB_SHA\"}"
